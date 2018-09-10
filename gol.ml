@@ -42,17 +42,18 @@ let rec div (m: matrice ) (c: int) : matrice  * matrice  =
 let mid (m: matrice) (n: int)  : matrice * cell list * matrice  =
 	let x,y =  div m n in x, (List.hd y) ,(List.tl y);;
 
-let rec insert (l: cell list) (n: int) (v: cell) : cell list  =
+let rec insert (l: cell list) (n: int) : cell list  =
 	match n,l with
 	| a , [] -> []
 	| a ,e::fin -> 
-		[ (if a = 0 then v else e) ] @ insert fin (n-1) v 
+		[ (if a = 0 then (if e = Alive then Dead else Alive)
+		 else e) ] @ insert fin (n-1)
 	
 let edit (m: matrice) (cs: (int*int) list) : matrice =
 		let rec aux (m: matrice ) (cs: (int*int) list)  : matrice = 
 		match cs with
 		|(x,y)::r -> let a,b,c = mid m y in
-			aux (a @ [ insert b x Alive ] @ c ) r 
+			aux (a @ [ insert b x ] @ c ) r 
 		| _ -> m
 		 in aux m cs ;;
 
