@@ -6,6 +6,8 @@ open Unix ;;
 let width = 200;;
 let height = 200;;
 
+let fps = 5. ;;
+
 type cell = Alive | Dead ;;
 
 type matrice = cell list list ;;
@@ -80,6 +82,19 @@ let construct (u: int) (size: int) : unit =
  		draw_segments  [| ( 0,(size * x),width,(size * x) ) |];
  		itr (u-1) in itr u
 
+module Time = struct
+
+let sec = Unix.time() ;;
+let msec = Unix.gettimeofday() *. 1000. ;;
+
+let wait (ms : float) : unit =
+	let r = msec in
+	let t = ref r and t_old = ref r in
+		while !t < (!t_old +. (100000. /. ms) ) do 
+			t := !t +. 0.001 ;
+			done ;;
+end;;
+
 module Mechanic =
 struct
 
@@ -124,35 +139,43 @@ let rec part l m x y = match l with
 end;;
 
 
-let exec = true
-
-let rec loop main exec : unit =
-	match exec with
-	| true -> main ; Unix.select [] [] [] 1000.0; loop main exec
-	| _ -> () 
-
-let generation = 200 ;;
 
 
-let rec start (m: matrice) (g:int) :unit =
+let  start (m: matrice) (g:int) : matrice =
 	match g with
-	| 0 -> ()
-	| e -> 	
-	
-	set_color(white);
-	fill_rect 0 0 width height;
-	set_color(black) ;
-	 construct gride size ;
+	| 0 -> m
+	| e -> disp m 0 0 ;	
 	let s =  Mechanic.all m m 0 0 in
-		disp s 0 0 ; print_char '\n' ; start s (e-1);;
-
+		 print_char '\n' ; s ;;
+		
+let setScreen =
+  open_graph "";
+  resize_window width height;
+  set_window_title "Game of life" ;;
+  
+let exec = 
+	let s = wait_next_event [Button_down; Key_pressed] 
+     in if s.Graphics.keypressed then
+      false else true ;;
+      
 let main : unit = 
 
-	open_graph "";
-	set_window_title "Game of life";
-	resize_window width height;
-
-	let s = edit (build gride gride)  [(3,5);(4,5);(5,5)]    in
-	start s generation;;
+	let s = ref (edit (build gride gride)  
+	[(3,5);(4,5);(5,5);(6,5)])  in
+	let generation = 20 in
+	while exec do
 	
-loop main exec ;;
+		set_color(white);
+		fill_rect 0 0 width height;
+		set_color(black) ;
+	 	construct gride size ;
+	 
+		s:= start !s generation ;
+
+		Time.wait fps ;
+	done;;
+
+(** Exec **)
+
+setScreen ;;
+main exec ;;
