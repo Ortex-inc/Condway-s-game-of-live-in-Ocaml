@@ -1,1 +1,1 @@
-# Condway's game of live , coded in Ocaml , a functional laguage
+# Condway's game of live , written with Ocaml , a functional langage
